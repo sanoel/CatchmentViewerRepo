@@ -23,5 +23,6 @@
     
     <Spinner android:id="@+id/field_spinner"
         	 android:layout_width="fill_parent"
-        	 android:layout_height="wrap_content" />
+        	 android:layout_height="wrap_content"
+    		 android:showAsAction="ifRoom|withText"/>
 </LinearLayout>

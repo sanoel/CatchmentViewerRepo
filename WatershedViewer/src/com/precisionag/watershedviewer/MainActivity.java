@@ -9,6 +9,7 @@ import java.util.Arrays;
 import java.util.regex.Pattern;
 
 import android.app.ActionBar;
+import android.app.ActionBar.OnNavigationListener;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
@@ -124,7 +125,7 @@ public class MainActivity extends Activity {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		ArrayList<String> fileList = new ArrayList<String>(Arrays.asList(fileArray));
+		final ArrayList<String> fileList = new ArrayList<String>(Arrays.asList(fileArray));
 		for(int i = fileList.size() - 1; i >= 0; i--) {
 			Log.e("Test",fileList.get(i));
 			// this apparently the best way to perform a case-insensitive string.contains
@@ -142,25 +143,32 @@ public class MainActivity extends Activity {
 		ArrayAdapter<String> adapter = new ArrayAdapter<String>(MainActivity.this, android.R.layout.simple_spinner_item, fileList);
 		Spinner spinner = (Spinner) findViewById(R.id.field_spinner);
 		spinner.setAdapter(adapter);
-		ActionBar.OnNavigationListener callback = null; 
-		actionBar.setListNavigationCallbacks(adapter, callback);
+		ActionBar.OnNavigationListener navListen = new OnNavigationListener() {
+
+			@Override
+			public boolean onNavigationItemSelected(int position, long itemId) {
+				Log.e("Test","1");
+				String selectedField = fileList.get(position);
+				Log.e("Test", selectedField);
+				
+				// Find some way to access bitmap without using resources, but using string
+				int bitmapResource = getResources().getIdentifier(selectedField, "drawable", getBaseContext().getPackageName());
+				Log.e("Test", getPackageName());
+				Log.e("Test", "resource id " + Integer.toString(bitmapResource));
+				
+				Bitmap bitmap = BitmapFactory.decodeResource(getResources(), bitmapResource);
+				field = new Field(bitmap, new LatLng(0.0, 0.0), new LatLng(0.0, 0.0), 0.0, 0.0);
+				Log.e("Test","3");
+				readDataFile(field, selectedField);
+				prevoverlay.remove();
+				prevoverlay = createOverlay(bitmap, field.fieldBounds);
+				Log.e("Test","4");
+				return false;
+			}
+		};
+		actionBar.setListNavigationCallbacks(adapter, navListen);
 		Log.e("Test","5");
 		return true;
-	}
-	public boolean onNavigationItemSelected(int position, long itemId) {
-		Log.e("Test","1");
-//		String[] strings = getResources().getStringArray(R.array.field_string_array);
-		String selectedField = "lowe115";//strings[position];
-		Log.e("Test","2");
-		Bitmap bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.lowe115);
-		field = new Field(bitmap, new LatLng(0.0, 0.0), new LatLng(0.0, 0.0), 0.0, 0.0);
-		Log.e("Test","3");
-		readDataFile(field, selectedField);
-		prevoverlay.remove();
-		prevoverlay = createOverlay(bitmap, field.fieldBounds);
-		//prevoverlay = field.createOverlay(map);
-		Log.e("Test","4");
-		return false;
 	}
 
 	//takes a bitmap, latitude/longitude bounds, and a map to create a map overlay
