@@ -1,10 +1,6 @@
 package com.precisionag.watershedviewer;
 
-import java.text.DecimalFormat;
-
 import android.graphics.Bitmap;
-import android.util.Log;
-
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.GroundOverlay;

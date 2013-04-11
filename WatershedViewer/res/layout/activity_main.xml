@@ -6,19 +6,22 @@
     tools:context=".MainActivity" >
     
     <fragment xmlns:android="http://schemas.android.com/apk/res/android"
-      xmlns:map="http://schemas.android.com/apk/res-auto"
+      		  xmlns:map="http://schemas.android.com/apk/res-auto"
+	  		  android:id="@+id/map" 
+	  		  android:layout_width="match_parent"
+	  		  android:layout_height="wrap_content"
+	  		  android:layout_weight="5"
+	  		  class="com.google.android.gms.maps.MapFragment"
+	  		  map:cameraTargetLat="40.9749879577"
+      		  map:cameraTargetLng="-86.1991258479" 
+      		  map:cameraZoom="14" />
     
-	  android:id="@+id/map" 
-	  android:layout_width="match_parent"
-	  android:layout_height="wrap_content"
-	  android:layout_weight="5"
-	  class="com.google.android.gms.maps.MapFragment"
-	  map:cameraTargetLat="40.9749879577"
-      map:cameraTargetLng="-86.1991258479" 
-      map:cameraZoom="14"
-      />
     <TextView android:id="@+id/text"
               android:layout_width="wrap_content"
               android:layout_height="wrap_content"
-              android:text="Your Catchment: " />
+              android:text="Your Catchment: "/>
+    
+    <Spinner android:id="@+id/field_spinner"
+        	 android:layout_width="fill_parent"
+        	 android:layout_height="wrap_content" />
 </LinearLayout>
