@@ -139,19 +139,26 @@ containing a value of this type.
         public static final int activity_vertical_margin=0x7f060001;
     }
     public static final class drawable {
-        public static final int content_new=0x7f020000;
-        public static final int content_remove=0x7f020001;
-        public static final int field=0x7f020002;
-        public static final int home128=0x7f020003;
-        public static final int ic_launcher=0x7f020004;
-        public static final int lowe115=0x7f020005;
+        public static final int av_pause=0x7f020000;
+        public static final int av_play=0x7f020001;
+        public static final int av_replay=0x7f020002;
+        public static final int buckmaster=0x7f020003;
+        public static final int content_new=0x7f020004;
+        public static final int content_picture=0x7f020005;
+        public static final int content_remove=0x7f020006;
+        public static final int field=0x7f020007;
+        public static final int home128=0x7f020008;
+        public static final int ic_launcher=0x7f020009;
+        public static final int jack52=0x7f02000a;
+        public static final int lowe115=0x7f02000b;
+        public static final int palmerdenver=0x7f02000c;
     }
     public static final class id {
         public static final int field_spinner=0x7f040007;
         public static final int hybrid=0x7f040004;
         public static final int map=0x7f040005;
-        public static final int menu_add=0x7f040008;
-        public static final int menu_remove=0x7f040009;
+        public static final int menu_reset=0x7f040009;
+        public static final int menu_start_pause=0x7f040008;
         public static final int none=0x7f040000;
         public static final int normal=0x7f040001;
         public static final int satellite=0x7f040002;

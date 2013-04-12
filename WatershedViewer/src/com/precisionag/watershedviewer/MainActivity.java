@@ -6,6 +6,7 @@ import java.io.InputStreamReader;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.regex.Pattern;
 
 import android.app.ActionBar;
@@ -22,8 +23,8 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.Menu;
+import android.view.MenuItem;
 import android.widget.ArrayAdapter;
 import android.widget.Spinner;
 import android.widget.TextView;
@@ -37,15 +38,23 @@ import com.google.android.gms.maps.model.GroundOverlay;
 import com.google.android.gms.maps.model.GroundOverlayOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
+import com.google.android.gms.maps.model.Polyline;
+import com.google.android.gms.maps.model.PolylineOptions;
 import com.precisionag.watershedviewer.Field;
 
 public class MainActivity extends Activity {
 
+	private static final int PAUSE = 1;
+	private static final int PLAY = 2;
+
 	GroundOverlay prevoverlay;
 
 	Field field;
+	List<LatLng> pathPoints;
+	PolylineOptions rectOptions;
+	Polyline pathTrace;
 	LatLng userLocation;
-	int mode;
+	int mode = PAUSE;
 	double density = 0.0;
 	LocationManager locationManager;
 	Context context = this;
@@ -117,7 +126,7 @@ public class MainActivity extends Activity {
 		getActionBar().setDisplayShowTitleEnabled(false);
 		actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_LIST);
 
-		// Get list of available field files from assets
+		// Build list of available field files from assets folder
 		AssetManager assetManager = getAssets();
 		String fileArray[] = null;
 		try {
@@ -127,19 +136,17 @@ public class MainActivity extends Activity {
 		}
 		final ArrayList<String> fileList = new ArrayList<String>(Arrays.asList(fileArray));
 		for(int i = fileList.size() - 1; i >= 0; i--) {
-			Log.e("Test",fileList.get(i));
-			// this apparently the best way to perform a case-insensitive string.contains
+			// this apparently a way to perform a case-insensitive string.contains
 			if (Pattern.compile(Pattern.quote(".latlng"), Pattern.CASE_INSENSITIVE).matcher(fileList.get(i)).find()) {
 				//split the extension from the string and record it in the list as a drop down item (including the file extension would be ugly)
 				String[] splitFile = fileList.get(i).split("\\.(?=[^\\.]+$)");
 				fileList.set(i, splitFile[0]);
 			}
 			else {
-				//remove non .latlng files from dropdown list
+				//remove non .latlng files from list of dropdown items
 				fileList.remove(i);
 			}
 		}	
-		
 		ArrayAdapter<String> adapter = new ArrayAdapter<String>(MainActivity.this, android.R.layout.simple_spinner_item, fileList);
 		Spinner spinner = (Spinner) findViewById(R.id.field_spinner);
 		spinner.setAdapter(adapter);
@@ -147,27 +154,20 @@ public class MainActivity extends Activity {
 
 			@Override
 			public boolean onNavigationItemSelected(int position, long itemId) {
-				Log.e("Test","1");
 				String selectedField = fileList.get(position);
-				Log.e("Test", selectedField);
-				
-				// Find some way to access bitmap without using resources, but using string
+				// get the drawable resource ID matching the dropdown item selected
 				int bitmapResource = getResources().getIdentifier(selectedField, "drawable", getBaseContext().getPackageName());
-				Log.e("Test", getPackageName());
-				Log.e("Test", "resource id " + Integer.toString(bitmapResource));
-				
 				Bitmap bitmap = BitmapFactory.decodeResource(getResources(), bitmapResource);
 				field = new Field(bitmap, new LatLng(0.0, 0.0), new LatLng(0.0, 0.0), 0.0, 0.0);
-				Log.e("Test","3");
+
+				// Read appropriate files for the field selected from the dropdown and re-overlay that field
 				readDataFile(field, selectedField);
 				prevoverlay.remove();
 				prevoverlay = createOverlay(bitmap, field.fieldBounds);
-				Log.e("Test","4");
 				return false;
 			}
 		};
 		actionBar.setListNavigationCallbacks(adapter, navListen);
-		Log.e("Test","5");
 		return true;
 	}
 
@@ -191,7 +191,6 @@ public class MainActivity extends Activity {
 			AssetManager am = getApplicationContext().getAssets();
 			BufferedReader dataIO = new BufferedReader(new InputStreamReader(am.open(field_name + ".latlng")));
 			String dataString = null;
-
 			dataString = dataIO.readLine();
 			double north = Double.parseDouble(dataString);
 			dataString = dataIO.readLine();
@@ -210,39 +209,35 @@ public class MainActivity extends Activity {
 			field.setSouthwest(southWest);
 
 			dataIO.close();
-
 		}
 		catch  (IOException e) {
 		}
 	}
 
-
-	LocationListener locationListener = new LocationListener() {
-		public void onLocationChanged(Location location) {
-			// Called when a new location is found by the network location provider.
-			userLocation = new LatLng(location.getLatitude(), location.getLongitude());
-
-			double catchmentDouble = field.catchmentFromLatLng(userLocation);
-			String catchmentString = new DecimalFormat("#.#").format(Math.abs(catchmentDouble));
-			Log.d("TAG", catchmentString);
-			String CatchmentText;
-			TextView CatchmentTextView = (TextView) findViewById(R.id.text);
-
-			if (catchmentDouble == 0.0) {
-				CatchmentText = "You are not in the field.";
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		// Handle Action Bar Item selection
+		
+		//this doesn't seem to work. the menu item icons don't change
+		if (item.getItemId() == R.id.menu_start_pause) {
+			if (mode == PAUSE) {
+				item.setIcon(R.drawable.av_play);
+				mode = PLAY;
 			}
-			else {
-				//String catchmentString = new DecimalFormat("#.#").format(Math.abs(catchmentDouble));
-				CatchmentText = "Your Catchment: " + catchmentString;
-			}
-			CatchmentTextView.setText(CatchmentText);	  
-		}
-
+			else if (mode == PLAY)  {
+				item.setIcon(R.drawable.av_pause);
+				mode = PAUSE;
+			}			else if (item.getItemId() == R.id.menu_reset) {
+				item.setIcon(R.drawable.av_play);
+				mode = PAUSE;
+				pathPoints.clear();
+			}		}
+		return false;
+	}
+	LocationListener locationListener = new LocationListener() {		public void onLocationChanged(Location location) {			// Called when a new location is found by the network location provider.			userLocation = new LatLng(location.getLatitude(), location.getLongitude());
+			if (mode == PLAY) {				if (pathPoints.size() >= 200) {					pathPoints.remove(0);					pathPoints.add(userLocation);				}				else {					pathPoints.add(userLocation);				}				pathTrace.setPoints(pathPoints);			}			double catchmentDouble = field.catchmentFromLatLng(userLocation);			String catchmentString = new DecimalFormat("#.#").format(Math.abs(catchmentDouble));			String CatchmentText;			TextView CatchmentTextView = (TextView) findViewById(R.id.text);
+			if (catchmentDouble == 0.0) {				CatchmentText = "You are not in the field.";			}			else {				//String catchmentString = new DecimalFormat("#.#").format(Math.abs(catchmentDouble));				CatchmentText = "Your Catchment: " + catchmentString;			}			CatchmentTextView.setText(CatchmentText);	  		}
 		public void onStatusChanged(String provider, int status, Bundle extras) {}
-
 		public void onProviderEnabled(String provider) {}
-
-		public void onProviderDisabled(String provider) {}
-	};
-
+		public void onProviderDisabled(String provider) {}	};
 }
